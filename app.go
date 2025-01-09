@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -26,9 +28,15 @@ var jwtSecret = "thisismysecurekey"
 
 func main() {
 
+	//env access
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error in getting env variable")
+	}
+
 	//Connect to mongodb
-	var uri_mongo = "mongodb+srv://22bce375:VIgTEqL9vX7G1C9a@cluster0.jc3t1.mongodb.net/go-project?retryWrites=true&w=majority&appName=Cluster0"
-	clientContext := options.Client().ApplyURI(uri_mongo)
+	MONGODB_URI := os.Getenv("MONGODB_URI")
+	clientContext := options.Client().ApplyURI(MONGODB_URI)
 	client, err := mongo.Connect(context.Background(), clientContext)
 
 	if err != nil {
@@ -57,8 +65,12 @@ func main() {
 	app.Post("/login", Login)
 	app.Get("/users", GetUser)
 
-	log.Println("Server running on port 3000")
-	app.Listen(":3000")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
+
+	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
 func GetUser(c *fiber.Ctx) error {
