@@ -7,12 +7,11 @@ import "../styles/signup.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
-const SignupForm = () => {
-  const [formData, setFormData] = useState({ email: "", password: "", confirmPassword: "" });
+const LoginForm = () => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState({ text: "", type: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,16 +21,11 @@ const SignupForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      setMessage({ text: "Passwords do not match!", type: "danger" });
-      return;
-    }
-
     setLoading(true);
     setMessage({ text: "", type: "" });
 
     try {
-      const response = await fetch("http://localhost:5000/register", {
+      const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, password: formData.password }),
@@ -39,10 +33,10 @@ const SignupForm = () => {
 
       const data = await response.json();
       if (response.ok) {
-        setMessage({ text: data.message || "User registered successfully!", type: "success" });
-        setFormData({ email: "", password: "", confirmPassword: "" });
+        setMessage({ text: data.message || "Login successful!", type: "success" });
+        setFormData({ email: "", password: "" });
       } else {
-        setMessage({ text: data.error || "An error occurred. Please try again.", type: "danger" });
+        setMessage({ text: data.error || "Invalid credentials. Please try again.", type: "danger" });
       }
     } catch (error) {
       setMessage({ text: "An error occurred. Please try again.", type: "danger" });
@@ -51,12 +45,8 @@ const SignupForm = () => {
     }
   };
 
-  const togglePasswordVisibility = (field) => {
-    if (field === "password") {
-      setShowPassword(!showPassword);
-    } else if (field === "confirmPassword") {
-      setShowConfirmPassword(!showConfirmPassword);
-    }
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -70,10 +60,10 @@ const SignupForm = () => {
         </div>
       </nav>
 
-      {/* Signup Form */}
+      {/* Login Form */}
       <div className="signup-container d-flex justify-content-center align-items-center">
         <div className="card">
-          <h2>Sign Up</h2>
+          <h2>Login</h2>
 
           {/* Bootstrap Alert */}
           {message.text && (
@@ -110,7 +100,7 @@ const SignupForm = () => {
                 />
                 <span
                   className="input-group-text"
-                  onClick={() => togglePasswordVisibility("password")}
+                  onClick={togglePasswordVisibility}
                   style={{ cursor: "pointer" }}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -118,34 +108,12 @@ const SignupForm = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password:</label>
-              <div className="input-group">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="form-control"
-                />
-                <span
-                  className="input-group-text"
-                  onClick={() => togglePasswordVisibility("confirmPassword")}
-                  style={{ cursor: "pointer" }}
-                >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-            </div>
-
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? "Registering..." : "Register"}
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
           <div className="social-signup">
-            <p>Or Sign Up Using</p>
+            <p>Or Login Using</p>
             <div className="social-buttons">
               <SocialButton iconPath={facebookIcon} alt="Facebook" />
               <SocialButton iconPath={googleIcon} alt="Google" />
@@ -153,7 +121,7 @@ const SignupForm = () => {
             </div>
           </div>
           <p className="login-link">
-            Already have an account? <Link to="/login">Login</Link>
+            Don't have an account? <Link to="/signup">Sign Up</Link>
           </p>
         </div>
       </div>
@@ -161,4 +129,4 @@ const SignupForm = () => {
   );
 };
 
-export default SignupForm;
+export default LoginForm;
