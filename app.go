@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,41 +23,48 @@ type User struct {
 	Password string `json:"password" bson:"password"`
 }
 
-// var users []User
 var userCollection *mongo.Collection
 var jwtSecret = "thisismysecurekey"
 
 func main() {
 
-	//env access
+	// Load environment variables
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error in getting env variable")
+		log.Fatal("Error loading .env file")
 	}
 
-	//Connect to mongodb
+	// Connect to MongoDB
 	MONGODB_URI := os.Getenv("MONGODB_URI")
 	clientContext := options.Client().ApplyURI(MONGODB_URI)
 	client, err := mongo.Connect(context.Background(), clientContext)
 
 	if err != nil {
-		log.Fatal("Error connecting to MongoDB" + err.Error())
+		log.Fatal("Error connecting to MongoDB: " + err.Error())
 	}
 
 	defer client.Disconnect(context.Background())
 
 	err = client.Ping(context.Background(), nil)
-
 	if err != nil {
-		log.Fatal("Error connecting to MongoDB" + err.Error())
+		log.Fatal("Error connecting to MongoDB: " + err.Error())
 	}
 
 	fmt.Println("Connected to MongoDB")
 
 	userCollection = client.Database("login-register").Collection("users")
 
+	// Create a new Fiber app
 	app := fiber.New()
 
+	// Apply CORS middleware
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*", // Allow all origins, adjust this for production
+		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
+		AllowHeaders: "Content-Type, Authorization",
+	}))
+
+	// Routes
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
@@ -65,6 +73,7 @@ func main() {
 	app.Post("/login", Login)
 	app.Get("/users", GetUser)
 
+	// Start the server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "5000"
