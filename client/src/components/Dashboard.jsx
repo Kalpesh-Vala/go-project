@@ -1,19 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const token = localStorage.getItem("token");
+  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
+        setEmail(payload.email || "User"); // Set email from token or default to 'User'
+      } catch (error) {
+        console.error("Invalid token:", error);
+        handleLogout(); // Logout if the token is invalid
+      }
+    } else {
+      navigate("/login"); // Redirect to login if no token
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("token"); // Clear token
-    window.location.href = "/login"; // Redirect to login
+    navigate("/login"); // Redirect to login
   };
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      <p>Welcome to the dashboard!</p>
-      <p><strong>Token:</strong> {token}</p>
-      <button onClick={handleLogout} className="btn btn-danger">Logout</button>
+      <Navbar username={email} /> {/* Pass email to Navbar */}
+      <div className="container mt-5">
+        <h1>Dashboard</h1>
+        <p>Welcome to the dashboard!</p>
+      </div>
+      <Footer />
     </div>
   );
 };

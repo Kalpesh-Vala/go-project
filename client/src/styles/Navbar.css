@@ -1,0 +1,52 @@
+/* Navbar.css */
+
+.custom-navbar {
+    background: linear-gradient(45deg, #007bff, #6610f2);
+    color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .custom-navbar .navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #fff;
+  }
+  
+  .custom-navbar .navbar-brand .brand-highlight {
+    color: #ffd700;
+  }
+  
+  .custom-navbar .nav-link {
+    color: #f8f9fa;
+    transition: color 0.3s ease;
+  }
+  
+  .custom-navbar .nav-link:hover,
+  .custom-navbar .nav-link.active {
+    color: #ffd700;
+  }
+  
+  .custom-navbar .dropdown-menu {
+    background-color: #343a40;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .custom-navbar .dropdown-menu .dropdown-item {
+    color: #f8f9fa;
+  }
+  
+  .custom-navbar .dropdown-menu .dropdown-item:hover {
+    background-color: #495057;
+    color: #ffd700;
+  }
+  
+  .navbar-toggler {
+    border-color: #f8f9fa;
+  }
+  
+  .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=UTF8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23f8f9fa' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255, 255, 255, 0.7)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+  }
+  
