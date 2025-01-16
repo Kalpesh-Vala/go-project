@@ -1,11 +1,6 @@
 import React, { useState } from "react";
-import SocialButton from "./SocialButton";
-import facebookIcon from "../assets/icons/facebook.svg";
-import googleIcon from "../assets/icons/google.svg";
-import githubIcon from "../assets/icons/github.svg";
-import "../styles/signup.css";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -20,7 +15,6 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
     setMessage({ text: "", type: "" });
 
@@ -33,10 +27,11 @@ const LoginForm = () => {
 
       const data = await response.json();
       if (response.ok) {
-        setMessage({ text: data.message || "Login successful!", type: "success" });
-        setFormData({ email: "", password: "" });
+        setMessage({ text: "Login successful!", type: "success" });
+        localStorage.setItem("token", data.token); // Store token in localStorage
+        window.location.href = "/dashboard"; // Redirect to dashboard
       } else {
-        setMessage({ text: data.error || "Invalid credentials. Please try again.", type: "danger" });
+        setMessage({ text: data.error || "Invalid credentials.", type: "danger" });
       }
     } catch (error) {
       setMessage({ text: "An error occurred. Please try again.", type: "danger" });
@@ -51,21 +46,16 @@ const LoginForm = () => {
 
   return (
     <div>
-      {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container-fluid">
-          <a className="navbar-brand" href="#">
-            GO Lang Projects
-          </a>
+          <a className="navbar-brand" href="#">GO Lang Projects</a>
         </div>
       </nav>
 
-      {/* Login Form */}
       <div className="signup-container d-flex justify-content-center align-items-center">
         <div className="card">
           <h2>Login</h2>
 
-          {/* Bootstrap Alert */}
           {message.text && (
             <div className={`alert alert-${message.type}`} role="alert">
               {message.text}
@@ -112,14 +102,6 @@ const LoginForm = () => {
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
-          <div className="social-signup">
-            <p>Or Login Using</p>
-            <div className="social-buttons">
-              <SocialButton iconPath={facebookIcon} alt="Facebook" />
-              <SocialButton iconPath={googleIcon} alt="Google" />
-              <SocialButton iconPath={githubIcon} alt="GitHub" />
-            </div>
-          </div>
           <p className="login-link">
             Don't have an account? <Link to="/signup">Sign Up</Link>
           </p>

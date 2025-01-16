@@ -2,47 +2,42 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import SignupForm from "./components/SignupForm";
 import LoginForm from "./components/LoginForm";
+import Dashboard from "./components/Dashboard";
 import HomePage from "./components/HomePage";
-// import DashboardPage from "./tmp/DashboardPage";
 
-// const App = () => {
-//   // Check if the user is logged in
-//   const isLoggedIn = localStorage.getItem("token");
+const validateToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return false;
 
-//   return (
-//     <Router>
-//       <div>
-//         <Routes>
-//           {/* Public routes */}
-//           <Route path="/" element={<HomePage />} />
-//           <Route path="/signup" element={<SignupForm />} />
-//           <Route path="/login" element={<LoginForm />} />
-
-//           {/* Protected route */}
-//           <Route
-//             path="/dashboard"
-//             element={isLoggedIn ? <DashboardPage /> : <Navigate to="/login" />}
-//           />
-//         </Routes>
-//       </div>
-//     </Router>
-//   );
-// };
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
+    return payload.exp > Date.now() / 1000; // Check if token is expired
+  } catch {
+    return false;
+  }
+};
 
 const App = () => {
+  const isAuthenticated = validateToken(); // Check authentication status
+
   return (
     <Router>
       <div>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/signup" element={<SignupForm />} />
-          <Route path="/login" element={<LoginForm />} />
-          {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginForm />}
+          />
+          <Route
+            path="/dashboard"
+            element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+          />
         </Routes>
       </div>
     </Router>
   );
 };
-
 
 export default App;
