@@ -1,0 +1,55 @@
+.todo-card, .chat-card {
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+  }
+  
+  .todo-card:hover, .chat-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .todo-image, .chat-image {
+    width: 100%; /* Ensure full width of the card */
+    height: 200px; /* Fixed height for uniformity */
+    object-fit: cover; /* Crop the image to fit the area */
+    transition: transform 0.3s ease;
+  }
+  
+  .todo-card:hover .todo-image, .chat-card:hover .chat-image {
+    transform: scale(1.1); /* Zoom effect on hover */
+  }
+  
+  /* Card Title and Text */
+  .card-title {
+    font-weight: bold;
+    color: #343a40;
+  }
+  
+  .card-text {
+    color: #6c757d;
+    margin-bottom: 15px;
+  }
+  
+  /* Button Styles */
+  .btn-primary {
+    background-color: #007bff;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+  
+  .btn-success {
+    background-color: #28a745;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-success:hover {
+    background-color: #218838;
+  }
+  

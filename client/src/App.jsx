@@ -1,24 +1,18 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import SignupForm from "./components/SignupForm";
 import LoginForm from "./components/LoginForm";
 import Dashboard from "./components/Dashboard";
 import HomePage from "./components/HomePage";
-
-const validateToken = () => {
-  const token = localStorage.getItem("token");
-  if (!token) return false;
-
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-    return payload.exp > Date.now() / 1000; // Check if token is expired
-  } catch {
-    return false;
-  }
-};
+import TodoTemplate from "./components/todo-app/TodoTemplate"; // Import the To-Do List component
+import { AuthContext } from "./context/AuthContext"; // Import the AuthContext
 
 const App = () => {
-  const isAuthenticated = validateToken(); // Check authentication status
+  const { isAuthenticated, userEmail, checkAuthStatus } = useContext(AuthContext);
+
+  useEffect(() => {
+    checkAuthStatus(); // Ensure the authentication status is checked on load
+  }, [checkAuthStatus]);
 
   return (
     <Router>
@@ -32,7 +26,11 @@ const App = () => {
           />
           <Route
             path="/dashboard"
-            element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Dashboard username={userEmail} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/todo"
+            element={isAuthenticated ? <TodoTemplate /> : <Navigate to="/login" />}
           />
         </Routes>
       </div>
