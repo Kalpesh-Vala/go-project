@@ -29,6 +29,7 @@ const LoginForm = () => {
       if (response.ok) {
         setMessage({ text: "Login successful!", type: "success" });
         localStorage.setItem("token", data.token); // Store token in localStorage
+        localStorage.setItem("db_id",data.user_id); // Store user_id in localStorage
         window.location.href = "/dashboard"; // Redirect to dashboard
       } else {
         setMessage({ text: data.error || "Invalid credentials.", type: "danger" });

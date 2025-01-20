@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +9,36 @@ import "../styles/Dashboard.css";
 
 const Dashboard = () => {
   const { isAuthenticated, userEmail, checkAuthStatus } = useContext(AuthContext); // Access auth status and email from context
+  const [todos, setTodos] = useState([]); // State to store todos
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuthStatus(); // Check authentication status when the component mounts
-  }, [checkAuthStatus]);
+
+    if (isAuthenticated && userEmail) {
+      // Fetch todos only if authenticated
+      fetchTodos();
+    }
+  }, [checkAuthStatus, isAuthenticated, userEmail]);
+
+  
+
+  // console.log(userEmail);
+  // console.log(localStorage.getItem("db_id"));
+
+  const fetchTodos = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/todos/${user_id}`); // Fetch todos
+      if (response.ok) {
+        const todosData = await response.json();
+        setTodos(todosData); // Set todos state
+      } else {
+        console.error("Error fetching todos");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   if (!isAuthenticated) {
     navigate("/login"); // Redirect to login if the user is not authenticated
@@ -42,7 +67,7 @@ const Dashboard = () => {
                 </p>
                 <button
                   className="btn btn-primary"
-                  onClick={() => navigate("/todo")}
+                  onClick={() => navigate("/todo", { state: { todos } })}
                 >
                   Go to To-Do List
                 </button>

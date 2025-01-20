@@ -9,9 +9,12 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = () => {
     const token = localStorage.getItem("token");
+    
     if (token) {
       try {
+        // console.log(token);
         const payload = JSON.parse(atob(token.split(".")[1]));
+        // console.log(payload);
         setUserEmail(payload.email || "User");
         setIsAuthenticated(payload.exp > Date.now() / 1000);
       } catch {

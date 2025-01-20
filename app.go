@@ -1,3 +1,4 @@
+// app.go
 package main
 
 import (
@@ -10,12 +11,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
-
-type User struct {
-	ID       string `json:"id," bson:"_id,omitempty"`
-	Email    string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
-}
 
 func main() {
 
@@ -42,6 +37,7 @@ func main() {
 	// Initialize routes
 	routes.AuthRoutes(app)
 	routes.UserRoutes(app)
+	routes.TodoRoutes(app) // Add TodoRoutes here
 
 	// Start the server
 	port := os.Getenv("PORT")

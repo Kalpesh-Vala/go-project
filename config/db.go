@@ -1,3 +1,4 @@
+// config/db.go
 package config
 
 import (
@@ -11,6 +12,7 @@ import (
 
 var Client *mongo.Client
 var UserCollection *mongo.Collection
+var TodoCollection *mongo.Collection // Add TodoCollection
 
 func ConnectDB() {
 	MONGODB_URI := os.Getenv("MONGODB_URI")
@@ -27,5 +29,6 @@ func ConnectDB() {
 	}
 
 	log.Println("Connected to MongoDB")
-	UserCollection = Client.Database("login-register").Collection("users")
+	UserCollection = Client.Database("go-react-app").Collection("users")
+	TodoCollection = Client.Database("go-react-app").Collection("todo_lists") // Initialize TodoCollection
 }
