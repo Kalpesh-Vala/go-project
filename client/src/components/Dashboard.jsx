@@ -8,27 +8,22 @@ import chatImage from "../assets/chat.png"; // Chat Application image
 import "../styles/Dashboard.css";
 
 const Dashboard = () => {
-  const { isAuthenticated, userEmail, checkAuthStatus } = useContext(AuthContext); // Access auth status and email from context
+  const { isAuthenticated, userEmail, userId, checkAuthStatus } = useContext(AuthContext); // Access auth status and email from context
   const [todos, setTodos] = useState([]); // State to store todos
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuthStatus(); // Check authentication status when the component mounts
 
-    if (isAuthenticated && userEmail) {
+    if (isAuthenticated && userId) {
       // Fetch todos only if authenticated
       fetchTodos();
     }
-  }, [checkAuthStatus, isAuthenticated, userEmail]);
-
-  
-
-  // console.log(userEmail);
-  // console.log(localStorage.getItem("db_id"));
+  }, [checkAuthStatus, isAuthenticated, userId]);
 
   const fetchTodos = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/todos/${user_id}`); // Fetch todos
+      const response = await fetch(`http://localhost:5000/api/todos/${userId}`); // Using userId for todos
       if (response.ok) {
         const todosData = await response.json();
         setTodos(todosData); // Set todos state
@@ -47,10 +42,10 @@ const Dashboard = () => {
 
   return (
     <div>
-      <Navbar username={userEmail} /> {/* Pass userEmail from context to Navbar */}
+      <Navbar username={userEmail} /> {/* Using userEmail in Navbar */}
       <div className="container mt-5">
         <h1>Dashboard</h1>
-        <p>Welcome to the dashboard, {userEmail}!</p> {/* Display email */}
+        <p>Welcome to the dashboard, {userEmail}!</p> {/* Using userEmail in welcome message */}
         <div className="row">
           {/* To-Do List Card */}
           <div className="col-md-6">

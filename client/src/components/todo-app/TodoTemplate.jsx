@@ -21,12 +21,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 const TodoTemplate = () => {
   const { isAuthenticated, userEmail, checkAuthStatus } = useContext(AuthContext); // Use context for auth
-  const [selectedCategory, setSelectedCategory] = useState("Todo-list-1");
-  const [tasks, setTasks] = useState({
-    "Todo-list-1": ["New Item added", "New Item added", "New Item added"],
-    "Todo-list-2": ["New Item added"],
-    "Todo-list-3": ["New Item added"],
-  });
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [tasks, setTasks] = useState({});
   const [newTask, setNewTask] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [newListName, setNewListName] = useState(""); // State for new list name
@@ -35,6 +31,44 @@ const TodoTemplate = () => {
   useEffect(() => {
     checkAuthStatus(); // Check auth status when the component mounts
   }, [checkAuthStatus]);
+
+  useEffect(() => {
+    const fetchTodoLists = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/todos', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Transform the data into the required format
+          const transformedData = data.reduce((acc, todo) => {
+            if (!acc[todo.listName]) {
+              acc[todo.listName] = [];
+            }
+            acc[todo.listName].push({
+              id: todo._id,
+              text: todo.text,
+              completed: todo.completed,
+              dueDate: todo.dueDate
+            });
+            return acc;
+          }, {});
+          
+          setTasks(transformedData);
+          // Set the first list as selected if none is selected
+          if (!selectedCategory && Object.keys(transformedData).length > 0) {
+            setSelectedCategory(Object.keys(transformedData)[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching todo lists:', error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchTodoLists();
+    }
+  }, [isAuthenticated, selectedCategory]);
 
   if (!isAuthenticated) {
     navigate("/login"); // Redirect to login if the user is not authenticated
@@ -45,13 +79,37 @@ const TodoTemplate = () => {
     setSelectedCategory(category);
   };
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     if (newTask.trim()) {
-      setTasks((prevTasks) => ({
-        ...prevTasks,
-        [selectedCategory]: [...prevTasks[selectedCategory], newTask],
-      }));
-      setNewTask("");
+      try {
+        const response = await fetch('http://localhost:5000/api/todos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            text: newTask,
+            listName: selectedCategory
+          }),
+        });
+
+        if (response.ok) {
+          const newTodo = await response.json();
+          setTasks(prevTasks => ({
+            ...prevTasks,
+            [selectedCategory]: [...prevTasks[selectedCategory], {
+              id: newTodo._id,
+              text: newTodo.text,
+              completed: newTodo.completed,
+              dueDate: newTodo.dueDate
+            }],
+          }));
+          setNewTask("");
+        }
+      } catch (error) {
+        console.error('Error adding task:', error);
+      }
     }
   };
 
@@ -139,25 +197,22 @@ const TodoTemplate = () => {
               </div>
             </Form>
             <ListGroup>
-              {tasks[selectedCategory].map((task, index) => (
+              {tasks[selectedCategory]?.map((task) => (
                 <ListGroupItem
-                  key={index}
+                  key={task.id}
                   className="d-flex justify-content-between align-items-center mb-2"
                   style={{ height: "4rem" }}
                 >
-                  {/* Left Section: Checkbox and Task */}
                   <div className="d-flex align-items-center">
                     <Input
                       type="checkbox"
                       className="mr-2"
                       style={{ paddingRight: "1rem" }}
+                      checked={task.completed}
                     />
-                    <span>{task}</span> {/* Task text */}
+                    <span>{task.text}</span>
                   </div>
-
-                  {/* Right Section: Edit, Delete, Calendar */}
                   <div className="d-flex flex-column align-items-end">
-                    {/* Top Row: Edit and Delete Icons */}
                     <div className="d-flex mb-2">
                       <FaEdit
                         className="text-primary mr-3"
@@ -168,11 +223,9 @@ const TodoTemplate = () => {
                         style={{ cursor: "pointer" }}
                       />
                     </div>
-
-                    {/* Bottom Row: Calendar Icon and Date */}
                     <div className="d-flex align-items-center">
                       <FaCalendarAlt className="text-secondary mr-2" />
-                      <small>28th Jan 2020</small>
+                      <small>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}</small>
                     </div>
                   </div>
                 </ListGroupItem>
