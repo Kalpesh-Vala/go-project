@@ -4,35 +4,21 @@ import Footer from "./Footer";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 import todoImage from "../assets/todo.jpg"; // To-Do List image
-import chatImage from "../assets/chat.png"; // Chat Application image
+// import chatImage from "../assets/chat.png"; // Chat Application image
 import "../styles/Dashboard.css";
 
 const Dashboard = () => {
   const { isAuthenticated, userEmail, userId, checkAuthStatus } = useContext(AuthContext); // Access auth status and email from context
-  const [todos, setTodos] = useState([]); // State to store todos
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuthStatus(); // Check authentication status when the component mounts
+  }, [checkAuthStatus]);
 
-    if (isAuthenticated && userId) {
-      // Fetch todos only if authenticated
-      fetchTodos();
-    }
-  }, [checkAuthStatus, isAuthenticated, userId]);
+  const handleGoToTodoList = () => {
 
-  const fetchTodos = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/todos/${userId}`); // Using userId for todos
-      if (response.ok) {
-        const todosData = await response.json();
-        setTodos(todosData); // Set todos state
-      } else {
-        console.error("Error fetching todos");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+    console.log(userId);
+    navigate("/todo", { state: { userId } }); // Passing userId to TodoTemplate
   };
 
   if (!isAuthenticated) {
@@ -62,33 +48,9 @@ const Dashboard = () => {
                 </p>
                 <button
                   className="btn btn-primary"
-                  onClick={() => navigate("/todo", { state: { todos } })}
+                  onClick={handleGoToTodoList}
                 >
                   Go to To-Do List
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Chat Application Card */}
-          <div className="col-md-6">
-            <div className="card chat-card shadow-lg">
-              <img
-                src={chatImage}
-                className="card-img-top chat-image"
-                alt="Chat Application"
-              />
-              <div className="card-body">
-                <h5 className="card-title">Chat Application</h5>
-                <p className="card-text">
-                  Stay connected with friends and family using our chat
-                  application.
-                </p>
-                <button
-                  className="btn btn-success"
-                  onClick={() => navigate("/chat")}
-                >
-                  Go to Chat App
                 </button>
               </div>
             </div>

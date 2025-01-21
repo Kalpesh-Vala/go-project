@@ -1,0 +1,23 @@
+{/* Chat Application Card */}
+<div className="col-md-6">
+  <div className="card chat-card shadow-lg">
+    <img
+      src={chatImage}
+      className="card-img-top chat-image"
+      alt="Chat Application"
+    />
+    <div className="card-body">
+      <h5 className="card-title">Chat Application</h5>
+      <p className="card-text">
+        Stay connected with friends and family using our chat
+        application.
+      </p>
+      <button
+        className="btn btn-success"
+        onClick={() => navigate("/chat")}
+      >
+        Go to Chat App
+      </button>
+    </div>
+  </div>
+</div>

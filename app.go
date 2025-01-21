@@ -1,9 +1,10 @@
-// app.go
 package main
 
 import (
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Kalpesh-Vala/go-project/config"
 	"github.com/Kalpesh-Vala/go-project/routes"
@@ -13,11 +14,9 @@ import (
 )
 
 func main() {
-
 	// Load environment variables
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
 	// Connect to MongoDB
@@ -28,90 +27,42 @@ func main() {
 
 	// Apply CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders: "Content-Type, Authorization",
+		AllowOrigins:     "http://localhost:5173", // Restrict in production
+		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
+		AllowCredentials: true,
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 	}))
 
-	log.Println("Server started on http://localhost:5000")
+	// Add logging middleware (optional)
+	app.Use(func(c *fiber.Ctx) error {
+		log.Printf("%s %s", c.Method(), c.Path())
+		return c.Next()
+	})
+
+	// Add a health check route
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendString("Server is healthy!")
+	})
+
 	// Initialize routes
 	routes.AuthRoutes(app)
 	routes.UserRoutes(app)
-	routes.TodoRoutes(app) // Add TodoRoutes here
+	routes.TodoRoutes(app)
+
+	// Graceful shutdown
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Println("Shutting down server...")
+		_ = app.Shutdown()
+	}()
 
 	// Start the server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "5000"
 	}
+	log.Printf("Server started on http://localhost:%s", port)
 	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
-
-// func Register(c *fiber.Ctx) error {
-// 	var data User
-
-// 	if err := c.BodyParser(&data); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid Input"})
-// 	}
-
-// 	if data.Email == "" || data.Password == "" {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Email and Password Required"})
-// 	}
-
-// 	for _, user := range users {
-// 		if user.Email == data.Email {
-// 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "User already exists"})
-// 		}
-// 	}
-
-// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to hash password"})
-// 	}
-
-// 	data.Password = string(hashedPassword)
-// 	users = append(users, data)
-
-// 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User Created Successfully"})
-// }
-
-// func Login(c *fiber.Ctx) error {
-// 	var data User
-
-// 	if err := c.BodyParser(&data); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid Input"})
-// 	}
-
-// 	var user User
-// 	for _, u := range users {
-// 		if u.Email == data.Email {
-// 			user = u
-// 			break
-// 		}
-// 	}
-
-// 	if user.Email == "" {
-// 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
-// 	}
-
-// 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)); err != nil {
-// 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid Password"})
-// 	}
-
-// 	// JWT token
-// 	token := jwt.New(jwt.SigningMethodHS256)
-// 	claims := token.Claims.(jwt.MapClaims)
-// 	claims["email"] = user.Email
-// 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-// 	tokenString, err := token.SignedString([]byte(jwtSecret))
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
-// 	}
-
-// 	return c.JSON(fiber.Map{"token": tokenString})
-// }
-
-// func GetUser(c *fiber.Ctx) error {
-// 	return c.JSON(users)
-// }
