@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import "../styles//Navbar.css"; // Import the custom CSS file
+import "../styles/Navbar.css"; // Import the custom CSS file
 
 const Navbar = ({ username }) => {
   const location = useLocation();

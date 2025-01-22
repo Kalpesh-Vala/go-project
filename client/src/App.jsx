@@ -4,7 +4,7 @@ import SignupForm from "./components/SignupForm";
 import LoginForm from "./components/LoginForm";
 import Dashboard from "./components/Dashboard";
 import HomePage from "./components/HomePage";
-import TodoTemplate from "./components/todo-app/TodoTemplate"; // Import the To-Do List component
+import TodoTemplate from "./components/TodoTemplate"; // Import the To-Do List component
 import { AuthContext } from "./context/AuthContext"; // Import the AuthContext
 
 const App = () => {

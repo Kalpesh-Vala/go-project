@@ -4,7 +4,6 @@ import Footer from "./Footer";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 import todoImage from "../assets/todo.jpg"; // To-Do List image
-// import chatImage from "../assets/chat.png"; // Chat Application image
 import "../styles/Dashboard.css";
 
 const Dashboard = () => {
@@ -16,7 +15,6 @@ const Dashboard = () => {
   }, [checkAuthStatus]);
 
   const handleGoToTodoList = () => {
-
     console.log(userId);
     navigate("/todo", { state: { userId } }); // Passing userId to TodoTemplate
   };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
-import Navbar from "../Navbar"; // Import Navbar
+import Navbar from "./Navbar"; // Import Navbar
 import { useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext"; // Import AuthContext
+import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 import {
   Button,
   ListGroup,
@@ -24,7 +24,7 @@ const TodoTemplate = () => {
   const { isAuthenticated, userEmail, checkAuthStatus } = useContext(AuthContext);
   const { state } = useLocation(); // Access userId passed from Dashboard
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [tasks, setTasks] = useState({});
+  const [tasks, setTasks] = useState({}); // Initialize tasks as an empty object
   const [newTask, setNewTask] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
   const [newListName, setNewListName] = useState(""); // New list name
@@ -41,28 +41,29 @@ const TodoTemplate = () => {
         const response = await fetch(`http://localhost:5000/api/todolist/${state.userId}`, {
           credentials: "include",
         });
-        if (response.ok) {
-          const { todos } = await response.json(); // Destructure `todos` from the response
-          const transformedData = todos.reduce((acc, todo) => {
-            if (!acc[todo.title]) {
-              acc[todo.title] = [];
-            }
-            if (todo.tasks) {
-              todo.tasks.forEach((task) => {
-                acc[todo.title].push({
-                  id: task._id || null, // Use task._id if available, else null
-                  text: task.title,
-                  completed: task.completed,
-                  dueDate: task.due_date,
-                });
-              });
-            }
-            return acc;
-          }, {});
-          setTasks(transformedData);
-          if (!selectedCategory && Object.keys(transformedData).length > 0) {
-            setSelectedCategory(Object.keys(transformedData)[0]);
+        if (!response.ok) {
+          throw new Error("Failed to fetch todo lists");
+        }
+        const { todos } = await response.json();
+        const transformedData = todos.reduce((acc, todo) => {
+          if (!acc[todo.title]) {
+            acc[todo.title] = [];
           }
+          if (todo.tasks) {
+            todo.tasks.forEach((task) => {
+              acc[todo.title].push({
+                id: task._id || null,
+                text: task.title,
+                completed: task.completed,
+                dueDate: task.due_date,
+              });
+            });
+          }
+          return acc;
+        }, {});
+        setTasks(transformedData);
+        if (!selectedCategory && Object.keys(transformedData).length > 0) {
+          setSelectedCategory(Object.keys(transformedData)[0]);
         }
       } catch (error) {
         console.error("Error fetching todo lists:", error);
@@ -70,7 +71,6 @@ const TodoTemplate = () => {
         setIsLoading(false);
       }
     };
-    
 
     if (isAuthenticated && state?.userId) {
       fetchTodoLists();
