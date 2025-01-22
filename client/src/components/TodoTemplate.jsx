@@ -16,8 +16,9 @@ import {
   ModalBody,
   ModalFooter,
   Spinner,
+  Alert,
 } from "reactstrap";
-import { FaPlus, FaEdit, FaTrash, FaCalendarAlt } from "react-icons/fa";
+import { FaPlus, FaTrash } from "react-icons/fa";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const TodoTemplate = () => {
@@ -29,6 +30,7 @@ const TodoTemplate = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
   const [newListName, setNewListName] = useState(""); // New list name
   const [isLoading, setIsLoading] = useState(true); // Loading indicator
+  const [confirmDelete, setConfirmDelete] = useState(null); // To track which todo list is being deleted
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -136,28 +138,64 @@ const TodoTemplate = () => {
     }
   };
 
+  const handleDeleteTodoList = async (todoTitle) => {
+    if (window.confirm(`Are you sure you want to delete the todo list: "${todoTitle}"?`)) {
+      try {
+        const formattedTitle = todoTitle.replace(/\s/g, "%20"); // Replace spaces with %20
+        const response = await fetch(`http://localhost:5000/api/todolist/${state.userId}/${formattedTitle}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          setTasks((prevTasks) => {
+            const newTasks = { ...prevTasks };
+            delete newTasks[todoTitle]; // Remove the deleted todo list from the state
+            return newTasks;
+          });
+        } else {
+          console.error("Failed to delete todo list");
+        }
+      } catch (error) {
+        console.error("Error deleting todo list:", error);
+      }
+    }
+  };
+
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const handleCreateNewList = () => {
+  const handleCreateNewList = async () => {
     if (newListName.trim() && !tasks[newListName]) {
-      setTasks((prevTasks) => ({
-        ...prevTasks,
-        [newListName]: [],
-      }));
-      setSelectedCategory(newListName);
-      setNewListName("");
-      toggleModal();
+      try {
+        const response = await fetch(`http://localhost:5000/api/todolist/${state.userId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title: newListName }),
+        });
+        if (response.ok) {
+          setTasks((prevTasks) => ({
+            ...prevTasks,
+            [newListName]: [],
+          }));
+          setSelectedCategory(newListName);
+          setNewListName("");
+          toggleModal();
+        }
+      } catch (error) {
+        console.error("Error creating new todo list:", error);
+      }
     }
   };
 
   return (
     <div>
       <Navbar username={userEmail} />
-
       <Container fluid className="mt-4">
         <Row>
+          {/* Left Sidebar */}
           <Col md={3} className="bg-light p-4">
             <Button color="danger" className="mb-3 w-100" onClick={toggleModal}>
               + Create New Todo-list
@@ -168,63 +206,60 @@ const TodoTemplate = () => {
                   key={category}
                   active={selectedCategory === category}
                   onClick={() => handleCategoryClick(category)}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", backgroundColor: "#f0f8ff", color: "#333333", fontFamily: "Times New Roman", fontWeight:"bold" }} // Change background color for better contrast
+                  className="d-flex justify-content-between align-items-center"
                 >
                   {category}
+                  <div>
+                    <FaTrash
+                      className="text-danger"
+                      onClick={() => handleDeleteTodoList(category)}
+                      style={{ cursor: "pointer" }}
+                    />
+                  </div>
                 </ListGroupItem>
               ))}
             </ListGroup>
           </Col>
 
+          {/* Right Content */}
           <Col md={9} className="p-4">
-            <h2 className="mb-4">{selectedCategory}</h2>
-            <Form className="mb-3">
-              <div className="row g-2 align-items-center">
-                <div className="col-12 col-md-8">
+            {isLoading ? (
+              <Spinner animation="border" />
+            ) : (
+              <div>
+                <h3>{selectedCategory}</h3>
+                <ListGroup>
+                  {tasks[selectedCategory]?.map((task) => (
+                    <ListGroupItem key={task.id} className="d-flex justify-content-between align-items-center">
+                      <span>{task.text}</span>
+                      <div>
+                        <FaTrash className="text-danger" onClick={() => handleDeleteTask(task.id)} />
+                      </div>
+                    </ListGroupItem>
+                  ))}
+                </ListGroup>
+                <div className="mt-3">
                   <Input
                     type="text"
-                    placeholder="Add new..."
+                    placeholder="Add new task"
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
-                    style={{ height: "3rem" }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAddTask();
+                    }}
                   />
-                </div>
-                <div className="col-6 col-md-3">
-                  <Button color="primary" onClick={handleAddTask} className="w-100" style={{ height: "3rem" }}>
-                    <FaPlus /> ADD
+                  <Button color="primary" className="mt-2" onClick={handleAddTask}>
+                    <FaPlus /> Add Task
                   </Button>
                 </div>
               </div>
-            </Form>
-
-            {isLoading ? (
-              <div className="d-flex justify-content-center">
-                <Spinner color="primary" />
-              </div>
-            ) : (
-              <ListGroup>
-                {tasks[selectedCategory]?.map((task) => (
-                  <ListGroupItem key={task.id} className="d-flex justify-content-between align-items-center mb-2">
-                    <div className="d-flex align-items-center">
-                      <Input type="checkbox" checked={task.completed} readOnly />
-                      <span className="ml-2">{task.text}</span>
-                    </div>
-                    <div className="d-flex">
-                      <FaEdit className="text-primary mr-3" style={{ cursor: "pointer" }} />
-                      <FaTrash
-                        className="text-danger"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleDeleteTask(task.id)}
-                      />
-                    </div>
-                  </ListGroupItem>
-                ))}
-              </ListGroup>
             )}
           </Col>
         </Row>
       </Container>
 
+      {/* Modal for Creating New List */}
       <Modal isOpen={isModalOpen} toggle={toggleModal}>
         <ModalHeader toggle={toggleModal}>Create New Todo List</ModalHeader>
         <ModalBody>
